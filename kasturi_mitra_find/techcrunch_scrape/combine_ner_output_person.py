@@ -1,9 +1,9 @@
 import pandas as pd
 
 # load named entities from three sources
-spacy = pd.read_csv("articles_entities_spacy.csv", index_col=0, converters={"potential_startups": lambda x: x.strip("[]").split(", ")})
-stanford = pd.read_csv("articles_entities_stanford.csv", index_col=0, converters={"potential_startups": lambda x: x.strip("[]").split(", ")})
-nltk = pd.read_csv("articles_entities_nltk.csv", index_col=0, converters={"potential_startups": lambda x: x.strip("[]").split(", ")})
+spacy = pd.read_csv("articles_entities_spacy.csv", index_col=0, converters={"people": lambda x: x.strip("[]").split(", ")})
+stanford = pd.read_csv("articles_entities_stanford.csv", index_col=0, converters={"people": lambda x: x.strip("[]").split(", ")})
+nltk = pd.read_csv("articles_entities_nltk.csv", index_col=0, converters={"people": lambda x: x.strip("[]").split(", ")})
 
 columns = ['article_id', 'union', 'intersection', 'intersection_al2']
 data = pd.DataFrame(columns=columns)
@@ -12,12 +12,12 @@ for i in range(0, len(spacy)):
     print(i)
     union = []
     #
-    # print(str(spacy.iloc[i]['potential_startups']) + "\n" + str(stanford.iloc[i]['potential_startups']) + "\n" + str(nltk.iloc[i]['potential_startups']))
+    # print(str(spacy.iloc[i]['people']) + "\n" + str(stanford.iloc[i]['people']) + "\n" + str(nltk.iloc[i]['people']))
 
     # union of potential startups
-    union.extend(spacy.iloc[i]['potential_startups'])
-    union.extend(stanford.iloc[i]['potential_startups'])
-    union.extend(nltk.iloc[i]['potential_startups'])
+    union.extend(spacy.iloc[i]['people'])
+    union.extend(stanford.iloc[i]['people'])
+    union.extend(nltk.iloc[i]['people'])
     # remove duplicates
     union = list(dict.fromkeys(union))
 
@@ -29,12 +29,12 @@ for i in range(0, len(spacy)):
     # print(union)
 
     # intersection of potential startups
-    intersection1 = list(set(spacy.iloc[i]['potential_startups']) & set(stanford.iloc[i]['potential_startups']))
-    intersection2 = list(set(stanford.iloc[i]['potential_startups']) & set(nltk.iloc[i]['potential_startups']))
-    intersection3 = list(set(nltk.iloc[i]['potential_startups']) & set(spacy.iloc[i]['potential_startups']))
+    intersection1 = list(set(spacy.iloc[i]['people']) & set(stanford.iloc[i]['people']))
+    intersection2 = list(set(stanford.iloc[i]['people']) & set(nltk.iloc[i]['people']))
+    intersection3 = list(set(nltk.iloc[i]['people']) & set(spacy.iloc[i]['people']))
 
     # intersetion of SpaCy, Stanford, NLTK
-    intersection = list(set(intersection1) & set(nltk.iloc[i]['potential_startups']))
+    intersection = list(set(intersection1) & set(nltk.iloc[i]['people']))
     # intersection with orgs appearing in any two
     intersection_at_least_two = []
     intersection_at_least_two.extend(intersection1)
@@ -57,4 +57,4 @@ for i in range(0, len(spacy)):
 
 
 # save locally
-data.to_csv('combined_ner_output.csv', encoding='utf-8-sig')
+data.to_csv('combined_ner_output_person.csv', encoding='utf-8-sig')
