@@ -1,0 +1,1326 @@
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="ie=edge" http-equiv="X-UA-Compatible"/>
+<meta content="Corepo is a web search engine enriched with company data to let you filter your results better and find the right companies faster." name="description"/>
+<meta content="companies, company, search company, company search, company search engine" name="keywords"/>
+<script async="" src="https://www.google-analytics.com/analytics.js" type="text/javascript"></script><script async="" crossorigin="anonymous" integrity="sha384-XR7MqpBQZ7rj79AkvDUBoyC0k/h38h0JQwfdLbDeumlU6srRetDW8JHponvmwca0" src="https://www.gstatic.com/recaptcha/releases/vzAt61JclNZYHl6fEWIBqLbe/recaptcha__en.js" type="text/javascript"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+<link href="https://corepo.org/favicon/" rel="icon"/>
+<link href="/static/css/base.css" rel="stylesheet" type="text/css"/>
+<link href="/static/css/modal.css" rel="stylesheet" type="text/css"/>
+<link href="/static/css/results.css" rel="stylesheet" type="text/css"/>
+<link href="/static/css/filters.css" rel="stylesheet" type="text/css"/>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@0.7.4/dist/tailwind.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet"/>
+<link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" rel="stylesheet"/>
+<style>
+        .grecaptcha-badge {
+            visibility: hidden;
+        }
+
+        #recaptcha-disclaimer, #recaptcha-disclaimer a {
+            color: #dedede !important;
+        }
+    </style>
+<link href="/static/css/results.css" rel="stylesheet" type="text/css"/>
+<link href="/static/css/filters.css" rel="stylesheet" type="text/css"/>
+<style type="text/css">
+        input[type=submit] {
+            background: none !important;
+            border: none;
+            padding: 0 !important;
+
+            /*optional*/
+            font-family: arial, sans-serif; /*input has OS specific font-family*/
+            color: #1a0dab;
+        }
+
+        input[type=submit]:hover {
+            text-decoration: underline;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .loc {
+            display: inline;
+        }
+
+        #specific-results {
+            display: none;
+        }
+
+        #specific-results-text, #specific-results-bestmatch-text, #specific-results-bestmatch-title {
+            display: inline;
+        }
+
+        
+        .add-to-list-lists {
+            list-style-type: none;
+        }
+
+        .add-to-list-lists:hover {
+            background: black;
+            opacity: 1;
+            color: white;
+            cursor: pointer;
+        }
+
+        .add-to-list-lists:active {
+            background: darkgrey;
+            opacity: 1;
+            color: black;
+        }
+
+        .bearer-hover {
+            display: block !important;
+        }
+
+        .add-to-list-list-name {
+            word-break: break-word;
+        }
+
+        .add-to-list-create-submit:hover {
+            opacity: 1;
+        }
+
+        #add-to-list-menu-div-close-icon:hover {
+            cursor: pointer;
+        }
+
+        .create-list-using-results-icon:hover .create-list-using-results-div {
+            width: auto;
+            height: auto;
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+<script src="https://www.google.com/recaptcha/api.js?render=6Lc1gLkaAAAAAMm80OosAkDHJzJb0BkaV9Tg-iyh"></script>
+<title>fampay - CoRepo Search</title>
+</head>
+<body>
+<div class="flex flex-grow flex-col min-h-screen">
+<div class="flex py-3 border-b border-grey-light mb-5">
+<div class="flex items-center justify-center" style="width:10%">
+<a href="/">
+<img class="h-5 sm:h-8 inline" src="/static/images/Logo_icon.png"/>
+</a>
+</div> <!-- Logo -->
+<div style="width:80%"> <!-- Search bar logic -->
+<form class="header-form" id="search-form">
+<div class="flex flex-row py-2 border rounded-full border-grey-light px-5 w-full">
+<input class="mr-2 max-w-full w-full bg-transparent" id="search-field" name="q" placeholder="Type a company name or industry" type="text" value="fampay"/>
+<div class="create-list-using-results-icon logo-red text-sm mr-5 cursor-pointer hidden" id="add-to-list-div">
+<i class="fas fa-list"></i>
+<div class="create-list-using-results-div absolute top-9 invisible opacity-0 w-0 h-0 transition-opacity duration-300">
+<button class="opacity-100 bg-white shadow min-w-lg block border-2 rounded-full focus:outline-none px-4 py-2 text-blue-500 text-xs hover:bg-blue-500 hover:text-white" onclick="createNewResultsFromList(this)" type="button">
+                                Create List From Results
+                            </button>
+</div>
+</div>
+<button class="logo-red" type="submit"><i class="fas fa-search"></i></button>
+</div>
+<div class="modal" id="filters">
+<div class="container max-w-full">
+<div class="text-center mb-4">
+<h3>Advanced Filters</h3>
+</div>
+<div class="flex flex-wrap -mx-3 mb-2">
+<div class="w-full md:w-1/2 px-3 mb-1 md:mb-0">
+<label class="block uppercase text-grey-darker text-xs font-bold mb-2">
+                Country
+                </label>
+<input class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark" form="search-form" name="country" placeholder="Country" type="text"/>
+</div>
+<div class="w-full md:w-1/2 px-3 mb-1 md:mb-0">
+<label class="block uppercase text-grey-darker text-xs font-bold mb-2">
+                City
+                </label>
+<input class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark" form="search-form" name="city" placeholder="City" type="text"/>
+</div>
+</div>
+<div class="flex flex-wrap mb-5 -mx-3">
+<div class="w-full px-3 mb-1">
+<label class="block uppercase tracking-wide text-grey-darker text-xs font-bold mb-2">
+                Company Size
+                </label>
+<div class="flex flex-wrap w-full py-2 mb-3">
+<div class="w-full md:w-1/3 py-1">
+<input class="mr-2" form="search-form" name="compSize[]" type="checkbox" value="10000"/><span>10001 and more</span>
+</div>
+<div class="w-full md:w-1/3 py-1">
+<input class="mr-2" form="search-form" name="compSize[]" type="checkbox" value="5000"/><span>5001 to 10000</span>
+</div>
+<div class="w-full md:w-1/3 py-1">
+<input class="mr-2" form="search-form" name="compSize[]" type="checkbox" value="1000"/><span>1001 to 5000</span>
+</div>
+<div class="w-full md:w-1/3 py-1">
+<input class="mr-2" form="search-form" name="compSize[]" type="checkbox" value="500"/><span>501 to 1000</span>
+</div>
+<div class="w-full md:w-1/3 py-1">
+<input class="mr-2" form="search-form" name="compSize[]" type="checkbox" value="200"/><span>201 to 500</span>
+</div>
+<div class="w-full md:w-1/3 py-1">
+<input class="mr-2" form="search-form" name="compSize[]" type="checkbox" value="50"/><span>51 to 200</span>
+</div>
+<div class="w-full md:w-1/3 py-1">
+<input class="mr-2" form="search-form" name="compSize[]" type="checkbox" value="1"/><span>1 to 50</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap -mx-3 mb-2">
+<div class="w-full md:w-1/2 px-3 mb-3 md:mb-0">
+<label class="block uppercase tracking-wide text-grey-darker text-xs font-bold mb-2">
+                Minimum Funding
+                </label>
+<input class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark" form="search-form" min="0" name="minFunding" type="number"/>
+</div>
+<div class="w-full md:w-1/2 px-3 mb-3 md:mb-0">
+<label class="block uppercase text-grey-darker text-xs font-bold mb-2">
+                Maximum Funding
+                </label>
+<input class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark" form="search-form" min="0" name="maxFunding" type="number"/>
+</div>
+</div>
+<div class="flex -mx-3 mb-2">
+<div class="w-full md:w-1/2 px-3 mb-2 md:mb-0">
+<label class="block uppercase text-grey-darker text-xs font-bold mb-2">
+                    Founding Year
+                </label>
+<input class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark" form="search-form" min="0" name="foundingYear" type="number"/>
+</div>
+<div class="w-full md:w-1/2 px-3 mb-2 md:mb-0">
+<label class="block uppercase text-grey-darker text-xs font-bold mb-2">
+                    Industry
+                </label>
+<select class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark outline-none" form="search-form" name="industry">
+<option value="">Choose Industry</option>
+<option value="accounting">accounting</option>
+<option value="airlines/aviation">airlines/aviation</option>
+<option value="alternative dispute resolution">alternative dispute resolution</option>
+<option value="alternative medicine">alternative medicine</option>
+<option value="animation">animation</option>
+<option value="apparel &amp; fashion">apparel &amp; fashion</option>
+<option value="architecture &amp; planning">architecture &amp; planning</option>
+<option value="arts and crafts">arts and crafts</option>
+<option value="automotive">automotive</option>
+<option value="aviation &amp; aerospace">aviation &amp; aerospace</option>
+<option value="banking">banking</option>
+<option value="biotechnology">biotechnology</option>
+<option value="broadcast media">broadcast media</option>
+<option value="building materials">building materials</option>
+<option value="business supplies and equipment">business supplies and equipment</option>
+<option value="capital markets">capital markets</option>
+<option value="chemicals">chemicals</option>
+<option value="civic &amp; social organization">civic &amp; social organization</option>
+<option value="civil engineering">civil engineering</option>
+<option value="commercial real estate">commercial real estate</option>
+<option value="computer &amp; network security">computer &amp; network security</option>
+<option value="computer games">computer games</option>
+<option value="computer hardware">computer hardware</option>
+<option value="computer networking">computer networking</option>
+<option value="computer software">computer software</option>
+<option value="construction">construction</option>
+<option value="consumer electronics">consumer electronics</option>
+<option value="consumer goods">consumer goods</option>
+<option value="consumer services">consumer services</option>
+<option value="cosmetics">cosmetics</option>
+<option value="dairy">dairy</option>
+<option value="defense &amp; space">defense &amp; space</option>
+<option value="design">design</option>
+<option value="e-learning">e-learning</option>
+<option value="education management">education management</option>
+<option value="electrical/electronic manufacturing">electrical/electronic manufacturing</option>
+<option value="entertainment">entertainment</option>
+<option value="environmental services">environmental services</option>
+<option value="events services">events services</option>
+<option value="executive office">executive office</option>
+<option value="facilities services">facilities services</option>
+<option value="farming">farming</option>
+<option value="financial services">financial services</option>
+<option value="fine art">fine art</option>
+<option value="fishery">fishery</option>
+<option value="food &amp; beverages">food &amp; beverages</option>
+<option value="food production">food production</option>
+<option value="fund-raising">fund-raising</option>
+<option value="furniture">furniture</option>
+<option value="gambling &amp; casinos">gambling &amp; casinos</option>
+<option value="glass, ceramics &amp; concrete">glass, ceramics &amp; concrete</option>
+<option value="government administration">government administration</option>
+<option value="government relations">government relations</option>
+<option value="graphic design">graphic design</option>
+<option value="health, wellness and fitness">health, wellness and fitness</option>
+<option value="higher education">higher education</option>
+<option value="hospital &amp; health care">hospital &amp; health care</option>
+<option value="hospitality">hospitality</option>
+<option value="human resources">human resources</option>
+<option value="import and export">import and export</option>
+<option value="individual &amp; family services">individual &amp; family services</option>
+<option value="industrial automation">industrial automation</option>
+<option value="information services">information services</option>
+<option value="information technology and services">information technology and services</option>
+<option value="insurance">insurance</option>
+<option value="international affairs">international affairs</option>
+<option value="international trade and development">international trade and development</option>
+<option value="internet">internet</option>
+<option value="investment banking">investment banking</option>
+<option value="investment management">investment management</option>
+<option value="judiciary">judiciary</option>
+<option value="law enforcement">law enforcement</option>
+<option value="law practice">law practice</option>
+<option value="legal services">legal services</option>
+<option value="legislative office">legislative office</option>
+<option value="leisure">leisure</option>
+<option value="libraries">libraries</option>
+<option value="logistics and supply chain">logistics and supply chain</option>
+<option value="luxury goods &amp; jewelry">luxury goods &amp; jewelry</option>
+<option value="machinery">machinery</option>
+<option value="management consulting">management consulting</option>
+<option value="maritime">maritime</option>
+<option value="market research">market research</option>
+<option value="marketing and advertising">marketing and advertising</option>
+<option value="mechanical or industrial engineering">mechanical or industrial engineering</option>
+<option value="media production">media production</option>
+<option value="medical devices">medical devices</option>
+<option value="medical practice">medical practice</option>
+<option value="mental health care">mental health care</option>
+<option value="military">military</option>
+<option value="mining &amp; metals">mining &amp; metals</option>
+<option value="motion pictures and film">motion pictures and film</option>
+<option value="museums and institutions">museums and institutions</option>
+<option value="music">music</option>
+<option value="nanotechnology">nanotechnology</option>
+<option value="newspapers">newspapers</option>
+<option value="non-profit organization management">non-profit organization management</option>
+<option value="nonprofit organization management">nonprofit organization management</option>
+<option value="oil &amp; energy">oil &amp; energy</option>
+<option value="online media">online media</option>
+<option value="outsourcing/offshoring">outsourcing/offshoring</option>
+<option value="package/freight delivery">package/freight delivery</option>
+<option value="packaging and containers">packaging and containers</option>
+<option value="paper &amp; forest products">paper &amp; forest products</option>
+<option value="performing arts">performing arts</option>
+<option value="pharmaceuticals">pharmaceuticals</option>
+<option value="philanthropy">philanthropy</option>
+<option value="photography">photography</option>
+<option value="plastics">plastics</option>
+<option value="political organization">political organization</option>
+<option value="primary/secondary education">primary/secondary education</option>
+<option value="printing">printing</option>
+<option value="professional training &amp; coaching">professional training &amp; coaching</option>
+<option value="program development">program development</option>
+<option value="public policy">public policy</option>
+<option value="public relations and communications">public relations and communications</option>
+<option value="public safety">public safety</option>
+<option value="publishing">publishing</option>
+<option value="railroad manufacture">railroad manufacture</option>
+<option value="ranching">ranching</option>
+<option value="real estate">real estate</option>
+<option value="recreational facilities and services">recreational facilities and services</option>
+<option value="religious institutions">religious institutions</option>
+<option value="renewables &amp; environment">renewables &amp; environment</option>
+<option value="research">research</option>
+<option value="restaurants">restaurants</option>
+<option value="retail">retail</option>
+<option value="security and investigations">security and investigations</option>
+<option value="semiconductors">semiconductors</option>
+<option value="shipbuilding">shipbuilding</option>
+<option value="sporting goods">sporting goods</option>
+<option value="sports">sports</option>
+<option value="staffing and recruiting">staffing and recruiting</option>
+<option value="supermarkets">supermarkets</option>
+<option value="telecommunications">telecommunications</option>
+<option value="textiles">textiles</option>
+<option value="think tanks">think tanks</option>
+<option value="tobacco">tobacco</option>
+<option value="translation and localization">translation and localization</option>
+<option value="transportation/trucking/railroad">transportation/trucking/railroad</option>
+<option value="travel &amp; tourism">travel &amp; tourism</option>
+<option value="utilities">utilities</option>
+<option value="venture capital &amp; private equity">venture capital &amp; private equity</option>
+<option value="veterinary">veterinary</option>
+<option value="warehousing">warehousing</option>
+<option value="wholesale">wholesale</option>
+<option value="wine and spirits">wine and spirits</option>
+<option value="wireless">wireless</option>
+<option value="writing and editing">writing and editing</option>
+</select>
+</div>
+</div>
+<hr/>
+<div class="flex -mx-3 mb-2">
+<div class="w-full md:w-1/2 px-3 mb-2 md:mb-0">
+<input class="mr-2" form="search-form" name="narrowSearch" type="checkbox"/><span>Narrow down search results</span>
+</div>
+</div>
+<hr/>
+<br/>
+<div class="flex flex-wrap -mx-3 mb-2">
+<div class="w-full md:w-1/2 px-3 mb-1 md:mb-0">
+<label class="block uppercase text-grey-darker text-xs font-bold mb-2">
+                Search by company domain
+                </label>
+<input class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark" form="search-form" name="qDomain" placeholder="Company domain" type="text" value=""/>
+</div>
+<div class="w-full md:w-1/2 px-3 mb-1 md:mb-0">
+<label class="block uppercase text-grey-darker text-xs font-bold mb-2">
+                Search by company name
+                </label>
+<input class="bg-transparent w-full text-grey-darker border border-grey rounded py-2 px-4 mb-3 focus:outline-none focus:border-grey-dark" form="search-form" name="qName" placeholder="Company name" type="text" value=""/>
+</div>
+</div>
+<button class="float-right px-3 py-2 bg-blue text-white" form="search-form" type="submit">Apply</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<div class="flex-1 mycontainer">
+<div class="result" id="specific-results"> <!--Specific Results Div-->
+<div id="specific-results-search-company-name-div">
+<p id="specific-results-text">Did you mean to search by company name?</p>
+<a href="/" id="specific-results-link">Found replace-count-string-here results for string
+                replace-query-string-here in company names.</a>
+<br/><br/>
+</div>
+<div class="border-solid rounded border-4 border-grey-light pl-2" id="specific-results-exact-search-div">
+<!-- Best match details div -->
+<div class="w-full md:w-1/2 mb-1 text-s">
+<a class="result-head" href="/co/weyerhaeuser.com/" id="specific-results-bestmatch-href">
+<p id="specific-results-bestmatch-text"><strong>Exact Match: </strong></p>
+<h4 class="result-title" id="specific-results-bestmatch-title">TestTitle</h4>
+<p class="result-domain" id="specific-results-bestmatch-link">https://weyerhaeuser.com</p>
+</a>
+</div>
+<div class="w-10/12 flex flex-row flex-wrap my-2 text-grey-dark text-xs">
+<div class="w-full md:w-1/2 mb-1" id="specific-results-bestmatch-founded-div">
+<p class="loc"><strong>Founded: </strong>
+</p><p class="loc meta-link" id="specific-results-bestmatch-founded">1990</p>
+<p></p>
+</div>
+<div class="w-full md:w-1/2 mb-1" id="specific-results-bestmatch-location-div">
+<p class="loc">
+<strong>Location: </strong>
+<a class="meta-link" id="specific-results-bestmatch-location">Dadabhae</a>
+</p>
+</div>
+<div class="w-full md:w-1/2 mb-1" id="specific-results-bestmatch-employee-bucket-div">
+<p class="loc">
+<strong>Employee Count: </strong>
+<a class="meta-link" id="specific-results-bestmatch-employee-bucket">1123</a>
+</p>
+</div>
+<div class="w-full md:w-1/2 mb-1" id="specific-results-bestmatch-funding-div">
+<p class="loc"><strong>Funding: </strong>
+<a class="meta-link" id="specific-results-bestmatch-funding">1123</a>
+</p>
+</div>
+<div class="w-full md:w-1/2 mb-1" id="specific-results-bestmatch-industry-div">
+<p><strong>Industry: </strong>
+<a class="meta-link" id="specific-results-bestmatch-industry">Bank</a>
+</p>
+</div>
+<div class="w-full md:w-1/2 mb-1" id="specific-results-bestmatch-social-div">
+<p><strong>Social: </strong>
+<a class="linkedin" id="specific-results-bestmatch-social">Linkedin</a>
+</p>
+</div>
+</div>
+<!--            <p><strong class="best-match-details">Employees: </strong></p><p class="best-match-details">Number of employees</p>-->
+<!--            <p class="best-match-details"><strong>Headquerters: </strong></p><p>Headquarters</p>-->
+<!--            <p class="best-match-details"><strong>Founded in: </strong></p><p>1997</p>-->
+</div> <!-- Best match details div -->
+<br/>
+</div> <!--Specific Results Div-->
+<div class="hidden" id="results-not-found-div">
+<p>Your search <strong>- fampay -</strong> yielded no results.</p>
+<br/>
+<p>What you can do:</p>
+<ul class="ml-5" style="list-style: disc">
+<li><p>The search string might be too specific. Try a more generic search.</p></li>
+<li><p>Spelling might be incorrect. Check that all words are spelled correctly.</p></li>
+<li><p>Your filter settings might be too strict and could be blocking results. Try changing those in the
+                toolbar above.</p>
+</li>
+</ul>
+</div>
+<div class="result" id="full-count-info"> <!-- Shows the total number of results found -->
+<p class="hidden" id="first-time-search-p">You are the first user to search <strong>'fampay'</strong> if you
+            give us 5 more seconds we will run a full index search on cold storage for you...</p>
+</div>
+<div id="result-list"> <!-- Main div where results will be shown -->
+<div class="result add-to-list-bearer">
+<div class="flex justify-between">
+<div class="">
+<a class="result-head" href="https://fampay.in" target="_blank">
+<h4 class="result-title">FamPay</h4>
+<p class="result-domain">https://fampay.in</p>
+</a>
+</div>
+<div class="relative flex flex-row"> <!-- Upvote Downvote Button -->
+</div> <!-- Upvote Downvote Button -->
+</div>
+<p class="result-description">
+        FamPay is a fintech company developing a payment platform for teenagers. ...
+        
+            - industries: Technology, fintech, mobile app, payments, platform
+        
+    </p>
+<div class="flex flex-row flex-wrap my-2 text-grey-dark text-xs">
+<div class="w-full md:w-1/2 mb-1">
+<p class="loc"><strong>Founded: </strong>
+<a class="meta-link" href="?q=FamPay&amp;country=&amp;city=&amp;minFunding=&amp;maxFunding=&amp;foundingYear=2019&amp;industry=&amp;qDomain=&amp;qName=&amp;gre_tok=03AGdBq24f65I_dwMna9RkD9RYPtDE8tpOBD2Nvqns4LEgDNkhV5TpaZGKOA_Ekkyg93254ngj9esFe2TZzrGIn0U9MseX08um3KbzTMT56qr-SDDbQPAR42ZL9kXG1SpGR8eFTUJqhG6zBDVqsWpxhP1vhf0izw05RoVHtYohBJ91prBp-wofcRjp6uXXeGIQ4De1EHm4idyqKvEtC89Q4kiGj_w_U1XF0Uic6m_RAxrnpNPmYbVSY9OuInFKPEgCiE7HUxV1popAbaO1v0FsHZ6tVv-oeyURj4JqHnL9XnLdpmmVAMleg2vJrKeuyBdblDUI6tVddDatzsLBbzduoREnRfOrXoh-vbnyLOAGQa2bW8B8oiMRsExkhOD1XoFEa08J_G7NJ1NlaL8-JIM88gHZVFuw4RuM8WDhytQPBldU0KEs9MnYWMKGjnHPLBP2cwQEAkYRXX-xt2-FafEHj06Q2yRk4CBn3di8imVpGE5rk78ivBMXh0VLHe1XJHrZyr891YtJV_ze&amp;page=1&amp;rcpv=1&amp;search_type=None">2019</a>
+</p>
+</div>
+<div class="w-full md:w-1/2 mb-1">
+<p class="loc">
+<strong>Employee Count: </strong>
+</p><form action="/search/" class="loc">
+<input hidden="" name="q" type="text" value="fampay"/>
+<input hidden="" name="country" type="text"/>
+<input hidden="" name="city" type="text"/>
+<input hidden="" name="compSize[]" type="checkbox" value="10000"/>
+<input hidden="" name="compSize[]" type="checkbox" value="5000"/>
+<input hidden="" name="compSize[]" type="checkbox" value="1000"/>
+<input hidden="" name="compSize[]" type="checkbox" value="500"/>
+<input hidden="" name="compSize[]" type="checkbox" value="200"/>
+<input checked="" hidden="" name="compSize[]" type="checkbox" value="50"/>
+<input hidden="" name="compSize[]" type="checkbox" value="1"/>
+<input hidden="" name="minFunding" type="number"/>
+<input hidden="" name="maxFunding" type="number"/>
+<input hidden="" name="narrowSearch" type="checkbox" value="False"/>
+<input hidden="" name="foundingYear" type="number"/>
+<input hidden="" name="industry" type="text" value=""/>
+<input type="submit" value="51 - 200"/>
+</form>
+<p></p>
+</div>
+<div class="w-full md:w-1/2 mb-1">
+<p class="loc"><strong>Funding: </strong>
+</p><form action="/search/" class="loc">
+<input hidden="" name="q" type="text" value="fampay"/>
+<input hidden="" name="country" type="text"/>
+<input hidden="" name="city" type="text"/>
+<input hidden="" name="compSize[]" type="checkbox" value="10000"/>
+<input hidden="" name="compSize[]" type="checkbox" value="5000"/>
+<input hidden="" name="compSize[]" type="checkbox" value="1000"/>
+<input hidden="" name="compSize[]" type="checkbox" value="500"/>
+<input hidden="" name="compSize[]" type="checkbox" value="200"/>
+<input hidden="" name="compSize[]" type="checkbox" value="50"/>
+<input hidden="" name="compSize[]" type="checkbox" value="1"/>
+<input hidden="" name="minFunding" type="number" value="1000001"/>
+<input hidden="" name="maxFunding" type="number" value="10000000"/>
+<input hidden="" name="foundingYear" type="number"/>
+<input hidden="" name="narrowSearch" type="checkbox" value="False"/>
+<input hidden="" name="industry" type="text" value=""/>
+<input type="submit" value="4.7 million"/>
+</form>
+<p></p>
+</div>
+<div class="w-full md:w-1/2 mb-1">
+<p><strong>Industry: </strong>
+<a class="meta-link" href="?q=FamPay&amp;country=&amp;city=&amp;minFunding=&amp;maxFunding=&amp;foundingYear=&amp;industry=Technology%2C+fintech%2C+mobile+app%2C+payments%2C+platform&amp;qDomain=&amp;qName=&amp;gre_tok=03AGdBq24f65I_dwMna9RkD9RYPtDE8tpOBD2Nvqns4LEgDNkhV5TpaZGKOA_Ekkyg93254ngj9esFe2TZzrGIn0U9MseX08um3KbzTMT56qr-SDDbQPAR42ZL9kXG1SpGR8eFTUJqhG6zBDVqsWpxhP1vhf0izw05RoVHtYohBJ91prBp-wofcRjp6uXXeGIQ4De1EHm4idyqKvEtC89Q4kiGj_w_U1XF0Uic6m_RAxrnpNPmYbVSY9OuInFKPEgCiE7HUxV1popAbaO1v0FsHZ6tVv-oeyURj4JqHnL9XnLdpmmVAMleg2vJrKeuyBdblDUI6tVddDatzsLBbzduoREnRfOrXoh-vbnyLOAGQa2bW8B8oiMRsExkhOD1XoFEa08J_G7NJ1NlaL8-JIM88gHZVFuw4RuM8WDhytQPBldU0KEs9MnYWMKGjnHPLBP2cwQEAkYRXX-xt2-FafEHj06Q2yRk4CBn3di8imVpGE5rk78ivBMXh0VLHe1XJHrZyr891YtJV_ze&amp;page=1&amp;rcpv=1&amp;search_type=None">Technology, fintech, mobile app, payments, platform</a>
+</p>
+</div>
+<div class="w-full md:w-1/2 mb-1">
+<p><strong>Social: </strong>
+<a class="linkedin" href="https://www.linkedin.com/company/fampay/" target="_blank">Linkedin</a>
+</p>
+</div>
+</div>
+</div></div>
+<div class="flex flex-row justify-center hidden" id="wait-message">
+<p>Hang on while we fetch the results...</p>
+</div>
+<div class="flex flex-row justify-center hidden" id="auto-reload-message">
+<p class="text-center">Seems like there aren't many results. We are doing a deep search and will automatically
+            load more results if found.</p>
+</div>
+<div class="flex flex-row justify-center my-3 hidden" id="load-more-div">
+<button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" onclick="loadMoreResults()">
+            LOAD MORE
+        </button>
+</div>
+<div class="flex flex-row justify-center" id="end-of-results-div">
+<p>That's it! You are at the end of results.</p>
+</div>
+</div>
+<div class="flex flex-wrap justify-center pt-10 pb-3 border-t">
+<a class="text-sm px-3 no-underline text-grey-darkest hover:underline" href="/about/">About</a>
+<a class="text-sm px-3 no-underline text-grey-darkest hover:underline" href="/contact-us/">Contact
+                us</a>
+<a class="text-sm px-3 no-underline text-grey-darkest hover:underline" href="/docs/v1/">API
+                Docs</a>
+<a class="text-sm px-3 no-underline text-grey-darkest hover:underline" href="/lists/all/">
+                Company Lists</a>
+</div>
+<div class="text-center">
+<p class="text-sm" id="recaptcha-disclaimer">
+                This site is protected by reCAPTCHA and the Google
+                <a href="https://policies.google.com/privacy">Privacy Policy</a> and
+                <a href="https://policies.google.com/terms">Terms of Service</a> apply.
+            </p>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+<!-- Global Site Tag (gtag.js) - Google Analytics -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-40463946-7"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'UA-40463946-7');
+</script>
+<script>
+        let domainsShown = [] // Domains that have been put to the page
+        let parameters = {} // Url parameters to send to django when results are required
+        let fullCountPosted = false
+        let fullResultCount = -1
+        let resultDiv = $('#result-list')
+        let fullCountDiv = $('#full-count-info')
+        let waitDiv = $('#wait-message')
+        let loadMoreDiv = $('#load-more-div')
+        let autoReloadMessageDiv = $('#auto-reload-message')
+        let endOfResultsDiv = $('#end-of-results-div')
+        let resultsNotFoundDiv = $('#results-not-found-div')
+        let createListDiv = $('#add-to-list-div')
+        let createListInitialized = false
+        let queryID = null
+        let userLoggedIn = null
+        let userID = null
+        let addToListDivs = $('.result-add-to-list')
+        let firstTimeSearchedP = $('#first-time-search-p')
+        let waitedForDIffbot = false
+        let autoLoadingInitiated = false
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function specificSearchAndReplace() {
+            // Don't run the function if qName is defined or page number is greater than 1
+            if (parameters["qName"] !== "") {
+                return;
+            }
+            if (parameters["page"] > 1) {
+                return;
+            }
+
+            if (fullResultCount <= 4 && fullResultCount > 0) {
+                return
+            }
+
+            var searchStr = document.getElementById("search-field").value;
+
+            // Define html variables where values are to be set
+            var specificResultsDiv = document.getElementById("specific-results");
+            var specificResultsSearchByCompanyDiv = document.getElementById("specific-results-search-company-name-div");
+            var specificResultsExactSearchDiv = document.getElementById("specific-results-exact-search-div");
+
+            var SpecificResultsFoundedDiv = document.getElementById("specific-results-bestmatch-founded-div");
+            var SpecificResultsLocationDiv = document.getElementById("specific-results-bestmatch-location-div");
+            var SpecificResultsBucketDiv = document.getElementById("specific-results-bestmatch-employee-bucket-div");
+            var SpecificResultsFundingDiv = document.getElementById("specific-results-bestmatch-funding-div");
+            var SpecificResultsIndustryDiv = document.getElementById("specific-results-bestmatch-industry-div");
+            var SpecificResultsSocialDiv = document.getElementById("specific-results-bestmatch-social-div");
+
+            var specificResultSearchedByCompanyNameLink = document.getElementById("specific-results-link");
+            var specificResultTitle = document.getElementById("specific-results-bestmatch-title");
+            var specificResultLink = document.getElementById("specific-results-bestmatch-link");
+            var specificResultFounded = document.getElementById("specific-results-bestmatch-founded");
+            var specificResultLocation = document.getElementById("specific-results-bestmatch-location");
+            var specificResultBucket = document.getElementById("specific-results-bestmatch-employee-bucket");
+            var specificResultFunding = document.getElementById("specific-results-bestmatch-funding");
+            var specificResultIndustry = document.getElementById("specific-results-bestmatch-industry");
+            var specificResultSocial = document.getElementById("specific-results-bestmatch-social");
+            var specificResultTitleHREF = document.getElementById("specific-results-bestmatch-href");
+
+            // Later use to display
+            var showSpecificResultDiv = false;
+            var showSpecificResultSearchByCompanyNameDiv = false;
+            var showSpecificResultExactSearchDiv = false;
+
+            var origin = document.location.origin
+            var endpoint = "/specific-searches/company-name"
+            var apiEndpoint = origin + endpoint
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    returnedData = JSON.parse(this.responseText)
+                    //console.log(returnedData);
+                    var searchByCompanyNameCount = returnedData.searchByCompanyNameCount;
+                    var exactMatchCount = returnedData.exactMatchCount;
+
+
+                    if (searchByCompanyNameCount === 0 && exactMatchCount === 0) {
+                        return;
+                    }
+                    if (searchByCompanyNameCount > 0 && searchByCompanyNameCount <= 10) {
+                        showSpecificResultDiv = true;
+                        showSpecificResultSearchByCompanyNameDiv = true;
+
+                        tohref = origin + returnedData.tohref;
+                        specificResultSearchedByCompanyNameLink.innerHTML = "Found " + searchByCompanyNameCount + " results for string <strong>\"" + searchStr + "\"</strong> in company names.";
+                        specificResultSearchedByCompanyNameLink.href = tohref;
+                    }
+                    if (exactMatchCount > 0) {
+                        showSpecificResultDiv = true;
+                        showSpecificResultExactSearchDiv = true;
+
+                        exactMatchData = returnedData.exactMatchData
+                        domain = exactMatchData.company_domain
+                        name = exactMatchData.company_name
+                        employees = exactMatchData.num_employees
+                        country = exactMatchData.country
+                        city = exactMatchData.city
+                        linkedin = exactMatchData.linkedin
+                        foundingYear = exactMatchData.company_founding_year
+                        totalFunding = exactMatchData.total_funding
+                        industries = exactMatchData.industries
+
+                        specificResultTitle.innerHTML = name;
+                        specificResultLink.innerHTML = domain;
+                        specificResultFounded.innerHTML = foundingYear;
+                        specificResultLocation.innerHTML = city.charAt(0).toUpperCase() + city.slice(1) + ", " + country.charAt(0).toUpperCase() + country.slice(1)
+                        specificResultBucket.innerHTML = employees;
+                        specificResultFunding.innerHTML = totalFunding;
+                        specificResultIndustry.innerHTML = industries;
+                        specificResultSocial.innerHTML = "Linkedin";
+                        specificResultSocial.href = linkedin;
+                        specificResultTitleHREF.href = origin + "/co/" + domain;
+
+                        // Check for nulls
+                        if (foundingYear == null) {
+                            SpecificResultsFoundedDiv.style.display = "none";
+                        }
+                        if (country == null && city == null) {
+                            SpecificResultsLocationDiv.style.display = "none";
+                        }
+                        if (employees == null) {
+                            SpecificResultsBucketDiv.style.display = "none";
+                        }
+                        if (totalFunding == null) {
+                            SpecificResultsFundingDiv.style.display = "none";
+                        }
+                        if (industries == null) {
+                            SpecificResultsIndustryDiv.style.display = "none";
+                        }
+                        if (linkedin == null) {
+                            SpecificResultsSocialDiv.style.display = "none";
+                        }
+
+                    }
+
+                    // Start displaying them now...
+                    if (showSpecificResultDiv == true) {
+                        specificResultsDiv.style.display = "block"; //flow-root is also an option
+                    } else {
+                        specificResultsDiv.style.display = "none";
+                    }
+
+                    if (showSpecificResultSearchByCompanyNameDiv == true) {
+                        specificResultsSearchByCompanyDiv.style.display = "block";
+                    } else {
+                        specificResultsSearchByCompanyDiv.style.display = "none";
+                    }
+
+                    if (showSpecificResultExactSearchDiv == true) {
+                        specificResultsExactSearchDiv.style.display = "block";
+                    } else {
+                        specificResultsExactSearchDiv.style.display = "none";
+                    }
+                }
+            };
+
+            xhttp.open("GET", apiEndpoint + "?name=" + searchStr, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send();
+        }
+
+        function loadMoreResults() {
+            loadMoreDiv.addClass('hidden')
+            waitDiv.removeClass('hidden')
+
+            parameters['page'] = parameters['page'] + 1
+
+            getResults()
+        }
+
+        function parseParameters(params) {
+            let vars = params.split("&");
+            let query_string = {};
+            for (let i = 0; i < vars.length; i++) {
+                let pair = vars[i].split("=");
+                let key = decodeURIComponent(pair[0]);
+                let value = decodeURIComponent(pair[1]);
+                // If first entry with this name
+                if (typeof query_string[key] === "undefined") {
+                    query_string[key] = decodeURIComponent(value);
+                    // If second entry with this name
+                } else if (typeof query_string[key] === "string") {
+                    let arr = [query_string[key], decodeURIComponent(value)];
+                    query_string[key] = arr;
+                    // If third or later entry with this name
+                } else {
+                    query_string[key].push(decodeURIComponent(value));
+                }
+            }
+            query_string['page'] = 1
+            return query_string;
+        }
+
+        function loadParameters() {
+            var currentUrl = document.location.href
+            var qMarkIndex = currentUrl.search('\\?')
+            var paramString = currentUrl.slice(qMarkIndex + 1)
+
+            // Add recaptcha info
+            parameters = parseParameters(paramString)
+            parameters['rcpv'] = "1"
+        }
+
+        function addNewResultsToPage(response, showEndOfResultsDivAfter = false) {
+            let resultsHtml = response['resultsHTML']
+            let resultKeys = Object.keys(resultsHtml)
+
+            // If the results are empty
+            if (resultKeys.length == 0 && parameters['page'] > 1) {
+                endOfResultsDiv.removeClass('hidden')
+                loadMoreDiv.addClass('hidden')
+                waitDiv.addClass('hidden')
+                return
+            } else if (resultKeys.length == 0 && parameters['page'] == 1 && !waitedForDIffbot) {
+                loadMoreDiv.addClass('hidden')
+                waitDiv.addClass('hidden')
+                // If count is empty. Let's hope for diffbot
+                firstTimeSearched()
+                return
+            } else if (resultKeys.length == 0 && parameters['page'] == 1 && waitedForDIffbot) {
+                resultsNotFoundDiv.removeClass('hidden')
+                loadMoreDiv.addClass('hidden')
+                waitDiv.addClass('hidden')
+                fullCountDiv.addClass('hidden')
+                firstTimeSearchedP.addClass('hidden')
+                // TODO: We need to let the code get to the autoReloading somehow
+                return
+            }
+            waitDiv.addClass('hidden')
+
+            // Post full count if not done already
+            if (!fullCountPosted) {
+                let fullCount = response['full_count']
+                
+                
+                fullCountPosted = true
+                fullResultCount = fullCount
+            }
+
+            // Logic to remove results that are already present here
+            let newKeys = []
+            let repeatedKeys = []
+            for (let i = 0; i < resultKeys.length; i++) {
+                let key = resultKeys[i]
+                if (!domainsShown.includes(key)) {
+                    newKeys.push(key)
+                } else {
+                    repeatedKeys.push(key)
+                }
+            }
+
+            // Add new keys to domainsShown variable for later
+            domainsShown = domainsShown.concat(newKeys)
+
+            for (let i = 0; i < newKeys.length; i++) {
+                resultDiv.append(resultsHtml[newKeys[i]])
+            }
+
+            waitDiv.addClass('hidden')
+            // Now check if more results are gonna come or not and based on that, show or remove the load more button
+            if (response['is_more']) {
+                loadMoreDiv.removeClass('hidden')
+            } else {
+                if (!autoLoadingInitiated) {
+                    autoReload(5, response['keyword_already_cached'])
+                }
+            }
+
+            // Set queryID
+            if (queryID == null) {
+                queryID = response['tempQueryID']
+            }
+
+            // Set user logged in info
+            if (userLoggedIn == null) {
+                userID = response['userID']
+                userLoggedIn = response['userLoggedIn']
+            }
+
+            /* LIST STUFF */
+            // Show the list button if user logged and count is less then required count
+            if (userLoggedIn && response['maxCompaniesAllowed'] > response['full_count'] && !createListInitialized) {
+                createListDiv.removeClass('hidden')
+                createListInitialized = true
+            }
+            $(document).mouseup(function (e) {
+                var container = $(".add-to-list-menu-div");
+                // if the target of the click isn't the container nor a descendant of the container
+                if (!container.is(e.target) && container.has(e.target).length === 0) {
+                    container.addClass("hidden");
+                }
+            });
+            // on hover functionality for add-to-list-bearers
+            $('.add-to-list-bearer').hover(function () {
+                $(this.querySelector('.result-add-to-list')).addClass('bearer-hover')
+            }, function () {
+                $(this.querySelector('.result-add-to-list')).removeClass('bearer-hover')
+            })
+            $(".add-new-list-form").submit(function (e) {
+                e.preventDefault();
+            });
+            if (showEndOfResultsDivAfter) {
+                autoReloadMessageDiv.addClass('hidden')
+                endOfResultsDiv.removeClass('hidden')
+            }
+
+        }
+
+        async function autoReload(secondsInBetween = 5, cached) {
+            // We want to show a friendly message and then start auto reloadin the web results 4 times
+            // There must be an async delay between each time
+            if (cached) {
+                endOfResultsDiv.removeClass('hidden')
+                return
+            }
+            if (!autoLoadingInitiated) {
+                autoLoadingInitiated = true
+            }
+
+            autoReloadMessageDiv.removeClass('hidden')
+            let waitMS = secondsInBetween * 1000
+            await sleep(waitMS)
+            getResults(true)
+            await sleep(waitMS)
+            getResults(true)
+            await sleep(waitMS)
+            getResults(true)
+            await sleep(waitMS)
+            getResults(true, true)
+
+
+        }
+
+        async function firstTimeSearched() {
+            firstTimeSearchedP.removeClass('hidden')
+            waitedForDIffbot = true
+            
+            await sleep(5000)
+            getResults()
+        }
+
+        function getResults(cancelDeepSearches = false, showEndOfResultsDivAfter = false) {
+            var baseurl = "/search_ret/"
+            var endPoint = '/search_ret'
+            var url = baseurl + '?' + generateParametersString()
+
+            if (cancelDeepSearches) {
+                url += '&cancelDS=1'
+            }
+
+            var serializedData = $(this).serialize()
+
+            $.ajax(
+                {
+                    type: 'GET',
+                    url: url,
+                    data: serializedData,
+                    success: function (response) {
+                        addNewResultsToPage(response, showEndOfResultsDivAfter)
+                    }
+                }
+            )
+        }
+
+        function generateParametersString() {
+            let parameterString = ""
+            for (const parametersKey in parameters) {
+                parameterString += parametersKey + '=' + parameters[parametersKey] + '&'
+            }
+            parameterString = parameterString.slice(0, parameterString.length - 1)
+            return parameterString
+        }
+
+        function createNewResultsFromList(button) {
+            var parentDiv = button.parentElement
+
+            var jqButton = $(button)
+            var jqParentDiv = $(parentDiv)
+
+            // Change styling of the button to show loading
+            var buttonText = button.innerText
+            jqButton.text('');
+            var spinnerIcon = document.createElement('i')
+            spinnerIcon.className = 'fas fa-spinner fa-pulse px-5'
+            button.appendChild(spinnerIcon)
+
+            // Make parent div visible
+            jqParentDiv.removeClass('invisible')
+            jqParentDiv.removeClass('opacity-0')
+
+            // Make body uninteractible
+            $('body').addClass('pointer-events-none	')
+
+            // Send request to get all lists
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    var data = JSON.parse(this.responseText)
+                    var listCreated = data.created;
+
+                    // If successfully_created was False
+                    if (!listCreated) {
+                        // Change styling of the button to show loading
+                        button.innerHtml = ''
+                        jqButton.text(buttonText);
+
+                        // Make parent div visible
+                        jqParentDiv.addClass('invisible')
+                        jqParentDiv.addClass('opacity-0')
+                        $('body').removeClass('pointer-events-none	')
+                        alert("Could not create list: " + data.err)
+                        return;
+                    }
+
+                    var listID = data.listID
+
+                    // All good, just reload
+                    var urlMask = "/lists/list/12345".replace(/12345/, listID.toString());
+                    window.location.replace(urlMask)
+                }
+            }
+            var origin = document.location.origin;
+            var endpoint = "/api/v1/list/create/from/search";
+            var apiEndpoint = origin + endpoint;
+
+
+            const params = {
+                'tempQueryID': queryID,
+                'userID': userID
+            };
+            var searchParams = new URLSearchParams(params);
+
+            xhttp.open("GET", apiEndpoint + "?" + searchParams, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send();
+
+
+        }
+
+        function voteResult(elem) {
+            let jElem = $(elem)
+            let upvoted = null
+            if (jElem.hasClass('fa-arrow-down')) {
+                upvoted = false
+            } else {
+                upvoted = true
+            }
+            let domain = jElem.attr('data-domain')
+
+            // Get message
+            let message = null
+            if (userLoggedIn) {
+                message = prompt("Reason for Up/Down voting:")
+            }
+
+            // Send request to get all lists
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    
+                    if (upvoted) {
+                        jElem.removeClass('text-green-300')
+                        jElem.removeClass('hover:text-green-500')
+                        jElem.addClass('text-green-700')
+                    } else {
+                        jElem.removeClass('text-red-300')
+                        jElem.removeClass('hover:text-red-500')
+                        jElem.addClass('text-red-700')
+                    }
+                    jElem.prop('onclick', null).off('click')
+                } else if (this.readyState === 4 && this.status >= 400) {
+                    console.log("Could not process vote right now...")
+                }
+            }
+            var origin = document.location.origin;
+            var endpoint = "/search_vote";
+            var apiEndpoint = origin + endpoint;
+
+            const params = {
+                'domain': domain,
+                'upvoted': upvoted,
+                'url': window.location.href,
+                'message': message,
+                'userID': userID,
+                'keyword': parameters['q']
+            };
+            var searchParams = new URLSearchParams(params);
+
+            xhttp.open("GET", apiEndpoint + "?" + searchParams, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send();
+
+        }
+
+        /* Add to list functionality */
+        async function addToListClicked(div, domain) {
+            var children = div.parentElement.childNodes;
+
+            var loadingDivClassName = "add-to-list-loading-div";
+            var loadingDivIndex = 0;
+
+            var menuDivClassName = "add-to-list-menu-div";
+            var menuDivIndex = 0;
+
+            // Get the loading div
+            for (var i = 0; i < children.length; i++) {
+                var child = children[i];
+                var childClasses = child.classList;
+
+                // Continue if classes empty
+                if (childClasses == null) {
+                    continue;
+                }
+
+                if (childClasses[0] === loadingDivClassName)
+                    loadingDivIndex = i;
+
+                if (childClasses[0] === menuDivClassName)
+                    menuDivIndex = i;
+            }
+
+            // Get elements
+            let loadingDiv = children[loadingDivIndex];
+            let menuDiv = children[menuDivIndex];
+
+            // Turn loading on...
+            loadingDiv.classList.remove("hidden");
+            // Send request to get all lists
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    var data = JSON.parse(this.responseText)
+                    var foundLists = data.found;
+
+                    // If found was False
+                    if (!foundLists && data.err === 'no lists present') {
+                        addItemToList('You have no lists.', '', menuDiv, true, false);
+                        $(loadingDiv).addClass("hidden");
+                        $(menuDiv).removeClass("hidden");
+                        return;
+                    } else if (!foundLists) {
+                        addItemToList('API Error, contact admin.', '', menuDiv, true, false);
+                        $(loadingDiv).addClass("hidden");
+                        $(menuDiv).removeClass("hidden");
+                        return;
+                    }
+
+                    // Lists are present at this point
+                    var lists = data.lists;
+
+                    for (var i = 0; i < lists.length; i++) {
+                        var list = lists[i]
+                        var emptyList = false
+
+                        if (i == 0) {
+                            emptyList = true
+                        }
+                        addItemToList(list['list_name'], list['list_id'], menuDiv, emptyList, true, domain);
+                    }
+
+                    // Show and hide divs
+                    $(loadingDiv).addClass("hidden");
+                    $(menuDiv).removeClass("hidden");
+                }
+            };
+
+            var origin = document.location.origin;
+            var endpoint = "/api/v1/list/get";
+            var apiEndpoint = origin + endpoint;
+
+            xhttp.open("GET", apiEndpoint + "?userID=" + userID, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send();
+
+        }
+
+        function addItemToList(name, id, menuDiv, emptyList, addListeners = true, domain = null) {
+            var dataAttrIDName = 'data-list-id';
+            // Add data items to ul of menu div
+            var classesForLi = "add-to-list-lists mt-2 p-2 rounded-lg";
+            var classesForLiDiv = "max-w-xs";
+            var classesForLiDivI = "fa fa-list mr-2";
+            var classesForLiDivSpan = "add-to-list-list-name";
+            let ulClassSelector = '.my-companies-list';
+
+            var liDivSpan = document.createElement('span');
+            liDivSpan.className = classesForLiDivSpan;
+            liDivSpan.appendChild(document.createTextNode(name));
+            var liDivI = document.createElement('i');
+            liDivI.className = classesForLiDivI;
+
+            var liDiv = document.createElement('div');
+            liDiv.className = classesForLiDiv;
+            liDiv.appendChild(liDivI);
+            liDiv.appendChild(liDivSpan);
+
+            var toAdd = document.createElement('li');
+            toAdd.className = classesForLi;
+            toAdd.setAttribute(dataAttrIDName, id);
+
+            if (addListeners) {
+                toAdd.addEventListener('click', function (e) {
+                    ULClickCallbackFunction(domain, id)
+                })
+            }
+
+            toAdd.appendChild(liDiv);
+
+            var ulID = ".my-companies-list";
+            var listOfLists = menuDiv.querySelector(ulID);
+
+            if (emptyList) {
+                $(listOfLists).empty();
+            }
+
+            listOfLists.appendChild(toAdd);
+        }
+
+        function createListFormSubmited(form) {
+            var resultAddListSelector = '.result-add-to-list'
+            var resultAddListMenuSelector = '.add-to-list-menu-div'
+            var button = form.querySelector('.add-to-list-create-submit')
+            $(button).text('');
+
+            var spinnerIcon = document.createElement('i')
+            spinnerIcon.className = 'fas fa-spinner fa-pulse'
+            button.appendChild(spinnerIcon)
+
+            var listName = form.name.value
+            var listDescription = form.description.value
+
+            // Send request to get all lists
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    var data = JSON.parse(this.responseText)
+                    var listCreated = data.successfully_created;
+
+                    button.innerHtml = ''
+                    $(button).text('Create List')
+
+                    // If successfully_created was False
+                    if (!listCreated) {
+                        alert("Could not create list: " + data.err)
+                        return;
+                    }
+
+                    // All good, just reload
+                    alert("List is created.")
+                    $(resultAddListSelector).removeClass('bearer-hover')
+                    $(resultAddListMenuSelector).addClass('hidden')
+                }
+            }
+            var origin = document.location.origin;
+            var endpoint = "/api/v1/list/create";
+            var apiEndpoint = origin + endpoint;
+
+            const params = {
+                'name': listName,
+                'description': listDescription,
+                'userID': userID
+            };
+            var searchParams = new URLSearchParams(params);
+
+            xhttp.open("GET", apiEndpoint + "?" + searchParams, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send();
+        }
+
+        function ULClickCallbackFunction(domain, id) {
+            let resultAddListSelector = '.result-add-to-list'
+            let resultAddListMenuSelector = '.add-to-list-menu-div'
+            $(resultAddListSelector).removeClass('bearer-hover')
+            $(resultAddListMenuSelector).addClass('hidden')
+
+
+            let listID = id;
+            let companyDomain = domain;
+
+
+            // Try adding company to list
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    var data = JSON.parse(this.responseText)
+                    var added = data.added;
+
+                    // If found was False
+                    if (!added) {
+                        alert("Could not add company to list!\n" + data.err)
+                        return;
+                    }
+
+                    alert("Company added to list.")
+                }
+            };
+
+            let origin = document.location.origin;
+            let endpoint = '/api/v1/list/addCompany/';
+            let apiEndpoint = origin + endpoint;
+
+            if (listID === '' || domain === '' || domain == null) {
+                alert("Could not add company to list!\n" + data.err)
+                return;
+            }
+
+            const params = {
+                'listID': listID,
+                'companyDomain': companyDomain,
+                'userID': userID
+            };
+            let searchParams = new URLSearchParams(params);
+            xhttp.open("GET", apiEndpoint + "?" + searchParams, true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send();
+        }
+
+        /* Add to list functionality END */
+
+        function onLoadFunc() {
+            loadParameters()
+            getResults()
+            // This function is being turned off for now
+            
+
+            // Set recatpcha to search bar
+            var jqForm = $('#search-form');
+            jqForm.submit(function (event) {
+                event.preventDefault();
+                grecaptcha.ready(function () {
+                    grecaptcha.execute('6Lc1gLkaAAAAAMm80OosAkDHJzJb0BkaV9Tg-iyh', {action: 'search'}).then(function (token) {
+                        jqForm.append('<input type="hidden" name="gre_tok" value="' + token + '">');
+                        
+                        jqForm.unbind('submit').submit();
+                    });
+                });
+            })
+        }
+
+        document.onload = onLoadFunc()
+    </script>
+<div><div class="grecaptcha-badge" data-style="bottomright" style="width: 256px; height: 60px; display: block; transition: right 0.3s ease 0s; position: fixed; bottom: 14px; right: -186px; box-shadow: gray 0px 0px 5px; border-radius: 2px; overflow: hidden;"><div class="grecaptcha-logo"><iframe frameborder="0" height="60" name="a-z5hvtbj181kd" role="presentation" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox" scrolling="no" src="https://www.google.com/recaptcha/api2/anchor?ar=1&amp;k=6Lc1gLkaAAAAAMm80OosAkDHJzJb0BkaV9Tg-iyh&amp;co=aHR0cHM6Ly9jb3JlcG8ub3JnOjQ0Mw..&amp;hl=en&amp;v=vzAt61JclNZYHl6fEWIBqLbe&amp;size=invisible&amp;cb=32xedab7re41" title="reCAPTCHA" width="256"></iframe></div><div class="grecaptcha-error"></div><textarea class="g-recaptcha-response" id="g-recaptcha-response-100000" name="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea></div><iframe style="display: none;"></iframe></div></body></html>
