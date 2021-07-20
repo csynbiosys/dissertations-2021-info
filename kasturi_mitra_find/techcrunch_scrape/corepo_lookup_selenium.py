@@ -24,9 +24,11 @@ driver.find_element_by_class_name('logo-red').click()
 time.sleep(5) # it takes some time to load results
 # driver.implicitly_wait(5)
 
-for i in range(2, 10):
+for i in range(50, 100):
     article_id = data.iloc[i]['article_id']
     print(i, end=" ")
+    if i%5 == 0:
+        time.sleep(30)
     for org in data.iloc[i]['intersection_al2']:
         j = 0
 
@@ -55,6 +57,7 @@ for i in range(2, 10):
                 break
             except:
                 print("Error at " + str(i) + org )
+                time.sleep(20)
     print("")
 
 # close the browser after 45 seconds
