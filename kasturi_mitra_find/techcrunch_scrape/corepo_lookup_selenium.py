@@ -21,10 +21,10 @@ driver.get("https://corepo.org/")
 # go to some random search page for consistency
 driver.find_element_by_id('main-search-box').send_keys('test')
 driver.find_element_by_class_name('logo-red').click()
-time.sleep(5) # it takes some time to load results
+time.sleep(10) # it takes some time to load results
 # driver.implicitly_wait(5)
 
-for i in range(50, 100):
+for i in range(493, 500):
     article_id = data.iloc[i]['article_id']
     print(i, end=" ")
     if i%5 == 0:
@@ -39,7 +39,7 @@ for i in range(50, 100):
                 driver.find_element_by_id('search-field').send_keys(org)
                 driver.find_element_by_id('search-field').send_keys("\n")
 
-                time.sleep(10)
+                time.sleep(20)
 
                 page_source = driver.page_source #driver.find_element_by_tag_name('body')
                 retrieved_result = BeautifulSoup(page_source, 'lxml')
@@ -57,7 +57,11 @@ for i in range(50, 100):
                 break
             except:
                 print("Error at " + str(i) + org )
-                time.sleep(20)
+                driver.close()
+                time.sleep(60)
+                driver = webdriver.Chrome(executable_path=chrome_driver, options=options)
+                driver.maximize_window()
+                driver.get("https://corepo.org/search/?q=test")
     print("")
 
 # close the browser after 45 seconds
