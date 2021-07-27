@@ -1,0 +1,10 @@
+This folder contains all the python files required to obtain certain statistics about the Crunchbase database. Each file performs the following:
+
+lead_investor.py
+	
+	Involves statistics only on those investors who have syndicated. Solo investors are not 
+	included.
+	
+	1.) How many have NaN "lead_investor" values
+	2.) How many of the entries with values of True for lead_investor have the largest 	
+	investment in the syndication

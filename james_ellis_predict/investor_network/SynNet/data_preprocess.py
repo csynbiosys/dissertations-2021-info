@@ -8,7 +8,7 @@ import time
 def clean_organisations(year_resolution=False):
     # Import data using only the columns needed - takes less time to import
     org_cols = ['uuid', 'founded_on']
-    org = pd.read_csv('../../../data/raw/organizations.csv', usecols=org_cols)
+    org = pd.read_csv('../../../../data/raw/organizations.csv', usecols=org_cols)
 
     # Renaming UUID to ORG_UUID for convenience
     org = org.rename(columns={'uuid':'org_uuid'})
@@ -20,7 +20,7 @@ def clean_organisations(year_resolution=False):
 
 def clean_acquisitions(year_resolution=False):
 
-    acq = pd.read_csv('../../../data/raw/acquisitions.csv')
+    acq = pd.read_csv('../../../../data/raw/acquisitions.csv')
 
     if year_resolution:
         acq['acquired_on'] = acq['acquired_on'].str.slice(0,4)
@@ -29,7 +29,7 @@ def clean_acquisitions(year_resolution=False):
 
 def clean_ipos(year_resolution=False):
 
-    ipos = pd.read_csv('../../../data/raw/ipos.csv')
+    ipos = pd.read_csv('../../../../data/raw/ipos.csv')
 
     if year_resolution:
         ipos['went_public_on'] = ipos['went_public_on'].str.slice(0,4)
@@ -37,9 +37,9 @@ def clean_ipos(year_resolution=False):
     return ipos
 
 def clean_funding(year_resolution=False):
-    
+
     funding_cols = ['investment_type', 'announced_on', 'investor_count', 'org_uuid', 'lead_investor_uuids']
-    funding = pd.read_csv('../../../data/raw/funding_rounds.csv', usecols=funding_cols)
+    funding = pd.read_csv('../../../../data/raw/funding_rounds.csv', usecols=funding_cols)
 
     funding = funding.astype({'announced_on': 'str'})
 
@@ -52,9 +52,11 @@ def clean_funding(year_resolution=False):
     return funding
 
 def clean_investments():
+    investments = pd.read_csv('../../../../data/raw/investments.csv')
+    return investments
 
-    inv = pd.read_csv('../../../data/raw/investments.csv')
-    return inv
+
+
 
 if __name__=="__main__":
     tabloo.show(clean_funding())
