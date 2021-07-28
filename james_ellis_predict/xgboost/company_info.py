@@ -30,28 +30,29 @@ from utils import splitDataFrameList
 # NOTE could add in the description sentiment 
 
 def company_info(tc, ts, stats=False):
-    org_cols = ['uuid', 'country_code', 'state_code', 'status', 'total_funding_usd', 'founded_on',
+    # Note, total_funding_usd not included here because it could include funding that has taken place during the simulation window.
+    # Hence, we calculate total_funding_usd in funding_info where it can be calculated for a specific warmup window
+    org_cols = ['uuid', 'country_code', 'status', 'founded_on',
         'facebook_url', 'linkedin_url', 'twitter_url','email', 'phone',  'primary_role', 'category_groups_list'
     ]
 
     org = pd.read_csv('../../../data/raw/organizations.csv', usecols=org_cols)
-
+    
     # Only interested in primary roll of company
     org = org[org['primary_role'] == 'company']
     org = org.drop(columns='primary_role')
-
+    
     # Removing certain rows with no values
     org = org[org['country_code'].notna()]
-    org = org[org['total_funding_usd'].notna()]
     org = org[org['founded_on'].notna()] 
     org = org[org['category_groups_list'].notna()] 
-
+    
     # Only want companies founded between t_c (start of warmup) and t_s (start of simulation)
     org = org[
         (org['founded_on'] >= tc) &
         (org['founded_on'] < ts)
         ]
-
+    
     if stats:
         # Shows significant spikes at the start of each year i.e trust code 4
         org['founded_on'].value_counts(normalize=True).sort_index().plot()
@@ -84,8 +85,7 @@ def company_info(tc, ts, stats=False):
         org[cat] = org['category_groups_list'].transform(lambda x: 1 if cat in x.split(',') else 0)
     org = org.drop(columns='category_groups_list')
 
-
-    show(org)
+    return org
 
 if __name__=="__main__":
-    company_info('2014-12-01','2017-12-01', stats=False)
+    company_info('2013-12-01','2017-12-01', stats=False)

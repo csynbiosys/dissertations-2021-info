@@ -27,6 +27,10 @@ def founders_info(tc, ts, stats=False):
     # Founders count
     peop['founders_count'] = peop.groupby('featured_job_organization_uuid')['uuid'].transform('size')
 
+    # Male and female count
+    peop['founders_male_count'] = peop.groupby('featured_job_organization_uuid')['gender'].transform(lambda x: (x=='male').sum())
+    peop['founders_female_count'] = peop.groupby('featured_job_organization_uuid')['gender'].transform(lambda x: (x=='female').sum())
+
     # Number of different countries for the founders
     peop['founders_dif_country_count'] = peop.groupby('featured_job_organization_uuid')['country_code'].transform('nunique')
 
@@ -81,6 +85,18 @@ def founders_info(tc, ts, stats=False):
 
     # Merging degree information to people
     peop = pd.merge(peop, deg, left_on='uuid', right_on='person_uuid', how='left').drop(columns='person_uuid')
+
+    # Replacing NaN for degree information with 0 - treating missing information on degrees as no degree
+    degree_columns = ['has_bachelors', 'has_masters', 'has_phd']
+    peop[degree_columns] = peop[degree_columns].fillna(0)
+
+    for c in degree_columns:
+        peop[c] = peop.groupby('featured_job_organization_uuid')[c].transform('max')
+
+    # Dropping unnecessary columns
+    peop = peop.drop_duplicates(subset='featured_job_organization_uuid').drop(columns = ['uuid', 'gender', 'country_code', 'featured_job_title'])
+
+    return peop
 
 if __name__=="__main__":
     founders_info('2014-12-01','2017-12-01', stats=False)
