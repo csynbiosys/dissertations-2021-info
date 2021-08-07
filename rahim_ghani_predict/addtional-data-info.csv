@@ -1,0 +1,3 @@
+filename,preprocessing,source
+2020-QS-World-University-Rankings-compressed.csv,delete all columns and rows and only take name columns for top 100 university,https://www.kaggle.com/divyansh22/qs-world-university-rankings/download
+Kauffman_Indicators_Early-Stage_Entrepreneurship_Data_2020.csv,no preprocessing,https://indicators.kauffman.org/wp-content/uploads/sites/2/2021/03/Kauffman_Indicators_Early-Stage_Entrepreneurship_Data_2020_v2.csv
