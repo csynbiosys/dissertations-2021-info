@@ -1,0 +1,1 @@
+{"n_estimators": 6622, "alpha": 0.1939623423959115, "colsample_bylevel": 0.2267404319600995, "colsample_bytree": 0.910522991632267, "eta": 0.0029342112327813, "gamma": 1.289269987318775e-07, "grow_policy": "lossguide", "lambda": 4.4697857502332166e-08, "max_depth": 8, "min_child_weight": 15.859997103887876, "subsample": 0.6098789055256766}

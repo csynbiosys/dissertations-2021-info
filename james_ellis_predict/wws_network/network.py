@@ -1,22 +1,33 @@
 import networkx as nx
 import pandas as pd
-from job_transfer import graph_data
 from networkx.algorithms import bipartite
-from networkx.algorithms.centrality import closeness_centrality
-import time
+from networkx.algorithms.centrality import betweenness_centrality, closeness_centrality,\
+                                            degree_centrality, eigenvector_centrality
 
-dates = [_ for _ in range(2000,2010)]
+def centrality(df, metric, gpu=False):
 
-for date in dates:
+    metrics = {
+        'closeness': closeness_centrality,
+        'betweenness': betweenness_centrality,
+        'degree': degree_centrality,
+        'eigenvector': eigenvector_centrality
+    }
 
-    t = time.time()
-    data = graph_data(date)
-    G = nx.from_pandas_edgelist(data, 'org_uuid', 'person_uuid')
-    P = bipartite.projected_graph(G, data['org_uuid'])
+    if gpu:
+        import cugraph as cnx
+        metrics['betweenness'] = cnx.betweenness_centrality
 
-    bc = closeness_centrality(P)
-    df = pd.DataFrame(bc.items(), columns=['org_uuid', 'betweenness_centrality'])
-    df.to_csv('data/results/centrality_values/cc_{}.csv'.format(date), index=False)
+    G = nx.from_pandas_edgelist(df, 'org_uuid', 'person_uuid')
+    P = bipartite.projected_graph(G, df['org_uuid'])
 
-    print(time.time()-t)
+    cent_vals = metrics[metric](P)
+    results = pd.DataFrame(cent_vals.items(), columns=['org_uuid', '{}_centrality'.format(metric)])
     
+    # CuGraph fails to give some centrality values to a few nodes... fill with 0
+    if metric == 'betweenness':
+        org = pd.DataFrame(list(P.nodes), columns=['org_uuid'])
+        merge = pd.merge(results, org, on='org_uuid', how='right')[['org_uuid', 'betweenness_centrality']].fillna(0)
+        return merge
+
+    return results
+

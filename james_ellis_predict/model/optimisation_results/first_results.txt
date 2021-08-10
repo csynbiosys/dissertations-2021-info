@@ -1,0 +1,48 @@
+Results for baseline+syn, centrality: closeness
+        Average Test Accuracy: 0.7481+-0.0005
+        Average Test Recall: 0.7029+-0.0043
+        Average Test Precision: 0.4416+-0.0006
+        Average of the mean mod shap value: 0.0659+-0.0034 
+         Average SHAP rank: 13.666666666666666, median: 13.0
+Results for baseline+syn, centrality: betweenness
+        Average Test Accuracy: 0.7472+-0.0004
+        Average Test Recall: 0.7046+-0.0037
+        Average Test Precision: 0.4406+-0.0003
+        Average of the mean mod shap value: 0.0631+-0.0029 
+         Average SHAP rank: 14.333333333333334, median: 15.0
+Results for baseline+syn, centrality: degree
+        Average Test Accuracy: 0.7467+-0.0004
+        Average Test Recall: 0.7061+-0.0041
+        Average Test Precision: 0.4401+-0.0002
+        Average of the mean mod shap value: 0.0695+-0.0017 
+         Average SHAP rank: 12.333333333333334, median: 12.0
+Results for baseline+syn, centrality: eigenvector
+        Average Test Accuracy: 0.7493+-0.0005
+        Average Test Recall: 0.7001+-0.0021
+        Average Test Precision: 0.4430+-0.0008
+        Average of the mean mod shap value: 0.0674+-0.0029 
+         Average SHAP rank: 13.0, median: 12.0
+Results for baseline+wws, centrality: closeness
+        Average Test Accuracy: 0.7504+-0.0009
+        Average Test Recall: 0.7088+-0.0034
+        Average Test Precision: 0.4451+-0.0010
+        Average of the mean mod shap value: 0.0981+-0.0019 
+         Average SHAP rank: 7.666666666666667, median: 8.0
+Results for baseline+wws, centrality: betweenness
+        Average Test Accuracy: 0.7495+-0.0012
+        Average Test Recall: 0.7097+-0.0049
+        Average Test Precision: 0.4439+-0.0013
+        Average of the mean mod shap value: 0.0969+-0.0028 
+         Average SHAP rank: 8.0, median: 8.0
+Results for baseline+wws, centrality: degree
+        Average Test Accuracy: 0.7504+-0.0011
+        Average Test Recall: 0.7053+-0.0030
+        Average Test Precision: 0.4449+-0.0014
+        Average of the mean mod shap value: 0.0924+-0.0019 
+         Average SHAP rank: 8.333333333333334, median: 8.0
+Results for baseline+wws, centrality: eigenvector
+        Average Test Accuracy: 0.7494+-0.0010
+        Average Test Recall: 0.7097+-0.0026
+        Average Test Precision: 0.4438+-0.0012
+        Average of the mean mod shap value: 0.0996+-0.0016 
+         Average SHAP rank: 7.666666666666667, median: 8.0

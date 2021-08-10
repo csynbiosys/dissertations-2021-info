@@ -1,51 +1,80 @@
 import networkx as nx 
 import pandas as pd
-from investments import investments
 from networkx.algorithms import bipartite
-from networkx.algorithms.centrality import closeness_centrality, degree_centrality, betweenness_centrality
-import tabloo
-from utils import from_pandas_edgelist_weighted
+from networkx.algorithms.centrality import closeness_centrality, degree_centrality, betweenness_centrality,\
+                                            eigenvector_centrality, in_degree_centrality, out_degree_centrality
 
-def centrality_t(datestring, metric = 'closeness', delta_t = None, syndication = False):
+def syndicate_centrality(df, metric = 'closeness', gpu=False):
     '''
-    Creates a network at a given time 
+    Creates and measures centrality of the syndicate network
     '''
-
     metrics = {
-        'closeness': closeness_centrality,
-        'degree': degree_centrality,
-        'betweenness': betweenness_centrality
+            'closeness': closeness_centrality,
+            'degree': degree_centrality,
+            'betweenness': betweenness_centrality,
+            'eigenvector': eigenvector_centrality
+        }
+
+    directed_metrics = {
+        'indegree': in_degree_centrality,
+        'outdegree': out_degree_centrality
     }
-
-    if metric not in metrics:
-        raise Exception("Invalid centrality metric. Pick one of 'closeness', 'degree', 'betweenness'")
-
-    data = investments(datestring, delta_t = delta_t)
     
-    other_data = data[['lead_investor_uuids', 'most_common_invest_type']].drop_duplicates(subset='lead_investor_uuids').rename(columns={'lead_investor_uuids':'uuid'})
+    if gpu:
+        import cugraph as cnx
+        metrics['betweenness'] = cnx.betweenness_centrality
 
-    if syndication:
-        G = nx.from_pandas_edgelist(data, 'org_uuid', 'lead_investor_uuids', edge_key = 'distance', edge_attr='investor_count')
+    
+    # NOTE not using directed metrics in final results due to lack of data
+    if metric in [*directed_metrics]:
+        
+        G = nx.DiGraph()
+
+        # Lead investors in funding rounds with more than one lead investor
+        multi_lead = df[ (df['is_lead_investor']==True) & (df['num_lead_investors'] > 1) ]
+        G.add_edges_from(zip(multi_lead['investor_uuid'], multi_lead['funding_round_uuid']))
+        G.add_edges_from(zip(multi_lead['funding_round_uuid'], multi_lead['investor_uuid']))
+
+        # Adding lead investors
+        lead = df[ (df['is_lead_investor'] == True)  & (df['num_lead_investors'] == 1)]
+        G.add_edges_from(zip(lead['investor_uuid'], lead['funding_round_uuid']))
+
+        # Adding non-lead investors in funding rounds with lead investors present
+        non_lead = df[ (df['is_lead_investor'] == False) & (df['num_lead_investors'] >=1) ]
+        G.add_edges_from(zip(non_lead['funding_round_uuid'], non_lead['investor_uuid']))
+
+        # NOTE this assumption could be total dogshit
+        # Adding non-lead investors in funding rounds with no lead investors assigned
+        non_lead_nolead = df[ (df['is_lead_investor'] == False) & (df['num_lead_investors'] == 0) ]
+        G.add_edges_from(zip(non_lead_nolead['funding_round_uuid'], non_lead_nolead['investor_uuid']))
+        G.add_edges_from(zip(non_lead_nolead['investor_uuid'], non_lead_nolead['funding_round_uuid']))
+
+        # Project network onto the investor nodes
+        P = bipartite.projected_graph(G, df['investor_uuid'].unique())
+
+        cent_vals = directed_metrics[metric](P)
+        results = pd.DataFrame(cent_vals.items(), columns=['investor_uuid', '{}_centrality'.format(metric)])
+
+        return results
+
     else:
-        G = nx.from_pandas_edgelist(data, 'org_uuid', 'lead_investor_uuids')
+        G = nx.Graph()
+        G = nx.from_pandas_edgelist(df, 'investor_uuid', 'funding_round_uuid')
 
-    P = bipartite.projected_graph(G, data['lead_investor_uuids'])
+        # Projection onto investor nodes
+        P = bipartite.projected_graph(G, df['investor_uuid'].unique())
 
-    # Calculating centrality values for a given metric
-    if syndication:
-        c_vals = metrics[metric](P, distance='distance')
-    else:
-        c_vals = metrics[metric](P)
-    
-    df = pd.DataFrame(c_vals.items(), columns = ['uuid', '{}_centrality'.format(metric)])
-    investors = pd.read_csv('../../../data/raw/investors.csv', usecols=['uuid', 'name', 'investor_types'])
-    
-    merge = pd.merge(df, investors, on='uuid', how='left')
-    merge = pd.merge(merge, other_data, on='uuid', how='left')
-    # merge.to_csv('vc_centrality.csv', index=False)
-    tabloo.show(merge)
+        cent_vals = metrics[metric](P)
+        results = pd.DataFrame(cent_vals.items(), columns=['investor_uuid', '{}_centrality'.format(metric)])
 
-    
+        # CuGraph fails to give some centrality values to a few nodes... fill with 0
+        if metric == 'betweenness':
+            investors = pd.DataFrame(list(P.nodes), columns=['investor_uuid'])
+            merge = pd.merge(results, investors, on='investor_uuid', how='right')[['investor_uuid', 'betweenness_centrality']].fillna(0)
+            return merge
+
+        return results
+
 if __name__=="__main__":
-    centrality_t('2020-01-01', delta_t=5, syndication=True)
+    centrality(metric='outdegree')
 

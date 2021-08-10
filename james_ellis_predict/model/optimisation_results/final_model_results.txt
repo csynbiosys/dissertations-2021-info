@@ -1,0 +1,22 @@
+Results for wws: closeness, syn: degree
+        Average Test Accuracy: 0.7496+-0.0004
+        Average Test Recall: 0.7098+-0.0041
+        Average Test Precision: 0.4441+-0.0007
+        SHAP info on feature: know_how_closeness_centrality
+                Average of the mean mod shap value: 0.1001+-0.0017 
+                Median SHAP rank: 7.0
+        SHAP info on feature: last_round_max_inv_degree_centrality
+                Average of the mean mod shap value: 0.0699+-0.0047 
+                Median SHAP rank: 14.0
+
+
+Results for wws: closeness, syn: eigenvector
+        Average Test Accuracy: 0.7510+-0.0006
+        Average Test Recall: 0.7081+-0.0038
+        Average Test Precision: 0.4458+-0.0005
+        SHAP info on feature: know_how_closeness_centrality
+                Average of the mean mod shap value: 0.0976+-0.0025 
+                Median SHAP rank: 8.0
+        SHAP info on feature: last_round_max_inv_eigenvector_centrality
+                Average of the mean mod shap value: 0.0704+-0.0064 
+                Median SHAP rank: 13.0
