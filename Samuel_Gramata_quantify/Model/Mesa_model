@@ -1,0 +1,347 @@
+from mesa import Agent, Model
+from mesa.time import RandomActivation, BaseScheduler
+from mesa.datacollection import DataCollector
+from scipy.stats import powerlaw, lognorm
+import numpy as np
+import pandas as pd
+import powerlaw as pr
+from numpy.random import normal
+import random
+from operator import attrgetter
+
+##VC Coefficients
+#VC Coefficients - General
+Number_of_VCs = 100 #approximate number of VCs in USA. In fact, it is 1000, but for computaional reasons we devide everything by 10
+Fund_maturity = 40 #the number of time steps until the outcome of the fund is realised, 1 step=3months
+VC_quality_alpha = 2.06 #alpha coefficient for power law distribution
+VC_quality_x_min = 0 #x_min coefficient for power law distribution
+VC_max_TVPI = 14 #we want to normalize VC_quality so that it lies between 0 and 1
+
+#VC Coefficients - Employees
+Number_of_employees_sd = 1.3711 #standard deviation coefficinet for lognormal distribution of number of employees
+Number_of_employees_loc = 0.8426 #loc coefficient for lognormal distribution of number of employees
+Number_of_employees_scale = 9.5626 #scale coefficient for lognormal distribution of number of employees
+VC_work_hours_per_week = 56 #Average numebr of hours worked by an analyst in VC
+Work_weeks_per_month = 4 
+Work_hours_per_month = VC_work_hours_per_week*Work_weeks_per_month #Work hours per months per employee in VC
+Work_hours_per_3months = Work_hours_per_month*3 #1 time step = 3 months, thus we are interested in hours per 3 months
+Percentage_of_time_spend_on_other_activities = 0.31 #time spend by VC employee on activitties not related to either screening or advising
+Time_for_screening_and_monitroring_3months_per_emp = Work_hours_per_3months*(1-Percentage_of_time_spend_on_other_activities)
+Number_of_funds_at_operation = 2 #at same time, VC takes care of multiple funds
+Time_for_screening_and_monitroring_3months_per_emp_per_fund = Time_for_screening_and_monitroring_3months_per_emp/Number_of_funds_at_operation
+
+#VC Coefficients - Time needed
+Screening_time = 60 #Time in hours needed to screen a startup
+Advising_time = 27.5 #Time in hours needed per time step(i.e. 3 months) to advise to a startup in the portfolio 
+
+#VC Coefficients - Returns
+Early_returns_alpha = 2.3758 #alpha coefficient for power law distribution of early stage retruns
+Early_returns_x_min = 4.5761 #X_min coefficeint for power law distribution of early stage returns
+Early_startup_exit = 32 #number of time steps it takes early startup to exit
+Late_returns_lognormal_sd = 0.98981 #standard deviation for log normal distribution of late stage returns
+Late_returns_lognormal_loc = -0.133236 #location coefficient for log normal distribution of late stage returns
+Late_returns_lognormal_scale = 1.79759 #scale coefficinet for log normal distribution of late stage returns
+Late_startup_exit = 24 #number of time steps it takes a late stage startup to exit
+
+##Startup Coefficients
+#Startup Coefficients - General
+Number_of_new_startups = 25600 #Number of business starts in USA every 3 months, In fact, it is 256000, but for computaional reasons we devide everything by 10
+Number_of_late_stage_startups = 36 #It is in fact 355, but we divide everything by 10 for computational reasons
+EPI_alpha = 0.29872 #alpha coefficient for power law distribution of EPI which is taken as a proxy for startup potential
+EPI_loc = 0 #location coefficient for power law distribution of EPI
+EPI_scale = 1 #scale coefficient for power law distribtuion of EPI
+
+#Startup Coefficients - Time progression equation
+#EPI = Alpha*EPI + Beat*VC + Industry_Shock + Macro_Shock + Idiosyncratic_shock
+Alpha = 0.99 #alpha coefficient for time progression equation. Expresses weight of EPI
+Beta = 0.01 #beta coefficient for time progression equation. Expresses the weight of VC 
+Macro_shock_mean = 0 #mean for normal distribution of macro shock
+Macro_shock_sd = 0.0681 #standard deviation for normal distribution of macro shock
+Industry_shock_mean = 0 #mean for normal distribution of industry shock
+Industry_shock_sd = 0.0432 #standard deviatio for normal distribution of industry shock
+Idiosyncratic_shock_mean = 0 #mean for normal distribution for idiosyncratic shock
+Idiosyncratic_shock_sd = 0.0775 #standard deviation for normal distribtion for idiosyncratic shock
+
+#Startup Coefficeints - Industries
+List_of_Industries = ["Business Productivity Software", "Drug Discovery", "Financial Software", "Media and Infromation Services", "Network Management Software", "Biotechnology", "Application Software", "Therapeutic Devices", "Surgical Devices", "Other Healthcare Tech Systems"]
+Probability_Distribution_of_Industries = [0.3486, 0.1133, 0.10841, 0.1006, 0.0844, 0.0729, 0.0556, 0.0440, 0.0365, 0.0357]
+Correlation_matrix = pd.read_excel("Correlation_matrix.xlsx")
+Correlation_matrix.index = Correlation_matrix["Unnamed: 0"]
+del Correlation_matrix["Unnamed: 0"]
+
+#Startup Coefficients - Screening
+Noise_mean_before_screening_ES = 0 #mean for normal distribution of noise before screening for early stage startups
+Noise_standard_deviaiton_before_screening_ES = 0.75 #standard deviation for normal distribution of noise before screening for early stage startups
+Noise_mean_after_screening_ES = 0 #mean for normal distribution of noise after screening for early stage startups
+Noise_standard_deviation_after_screening_ES = 0.2 #standard deviation for normal distribution of noise after screening for early stage startups
+Noise_mean_before_screnniing_LS = 0 #mean for normal distribution of noise before screening for late stage startups
+Noise_standard_deviaiton_before_screening_LS = 0.53 #standard deviation for normal distribution of noise before screening for late stage startups
+Noise_mean_after_screening_LS = 0 #mean for normal distribution of noise after screening for late stage startups
+Noise_mean_before_screnniing_LS = 0.14 #standard deviation for normal distribution of noise after screening for late stage startups
+
+#Startup Coefficients - Investors
+Number_of_investors_per_round = 5 #max number of investors allowed to invest in startup
+Number_of_due_diligence_investors = 10 #number of investors enagaged in due diligence
+
+##A sample of early stage returns, used for potential -> return mapping
+#powerlaw package does not have an inverse cdf function, hence we apporximate it with a sample
+sample_size = 10000
+theoretical_distribution_ER = pr.Power_Law(x_min = Early_returns_x_min, parameters = [Early_returns_alpha])
+simulated_data_ER = theoretical_distribution_ER.generate_random(sample_size)
+simulated_data_new_ER = []
+for i in simulated_data_ER: #simulated data start with 1, but rerturns start with 0, hence we translate the smaple by -1
+    i = i-1
+    simulated_data_new_ER.append(i)
+sample_data_ER = sorted(simulated_data_new_ER)
+
+##A distribution for VC_quality
+theoretical_distribution_VC = pr.Power_Law(x_min = VC_quality_x_min, parameters = [VC_quality_alpha])
+
+##General model coefficents
+Risk_free_rate = 1.521 #10 year return on us treasury bill
+
+##Here we define class for VC, Startup and Activation
+#VC is assigend a unique id, VC quality and the number of investment analysts
+class VC(Agent):
+    def __init__(self, unique_id, VC_quality, Investment_analysts, model):
+        self.unique_id = unique_id
+        self.model = model
+        self.VC_quality = VC_quality
+        self.Investment_analysts = Investment_analysts
+        self.Endowement = 1
+        self.Screening_prospects = []
+        self.Portfolio = []
+        self.Portfolio_size = len(self.Portfolio)
+        self.Effort_left_for_fund = self.Investment_analysts*Time_for_screening_and_monitroring_3months_per_emp_per_fund
+        self.Effort_allocated_to_startups_in_portfolio = self.Portfolio_size*Advising_time
+        self.Effort_left_for_screening = self.Effort_left_for_fund - self.Effort_allocated_to_startups_in_portfolio
+        self.Number_of_available_screenings = self.Effort_left_for_screening/Screening_time 
+        
+    #This funciton enables us to map EPI (startup potnetial) into returns
+    def EPI_to_returns(EPI, stage):
+        #This gives us probability of observing EPI less or equal to observed vlaue
+        probability = powerlaw.cdf(EPI, EPI_alpha, EPI_loc, EPI_scale)
+        #If VC has invested in the startup in early stage then:
+        if stage == "Early":
+            return sample_data_ER[int(sample_size*probability)]
+        #If VC has invested in the startup in later stage then:
+        if stage == "Late":
+            return lognorm.ppf(probability, Late_returns_lognormal_sd, Late_returns_lognormal_loc, Late_returns_lognormal_scale)         
+    
+    #Projects EPI fo startups into the future
+    def time_progression_projeted(EPI):
+        EPI = Alpha*EPI + Beta*self.VC_quality + np.random.normal(Idiosyncratic_shock_mean, Idiosyncratic_shock_sd)\
+        + np.random.normal(Industry_shock_mean, Industry_shock_sd) + np.random.normal(Macro_shock_mean, Macro_shock_sd)
+
+    #Calculates expecetd covariance between two startups
+    #Since EPI_final boils down to EPI_final ≈ Alpha^32*EPI_0 + (Alpha^31 + Alpha^30 + ...+ 1) *Beta*Advising
+    #+(Alpha^31 + Alpha^30 + ...+ 1) * Average_Idiosyncratic_shock + (Alpha^31 + Alpha^30 + ...+ 1) *Averga_Industry_shock +(Alpha^31 + Alpha^30 + ...+ 1) *Averga_Macro_shock
+    # the Cov(Startup_1, Startup_2) = 
+    def expected_covariance(self, startup_1, startup_2):
+        time_together = Early_startup_exit - max(getattr(startup_1, "Life_stage"), getattr(startup_2, "Life_stage"))
+        alpha_sumation_1 = Alpha^(1 + Early_startup_exit - getattr(startup_1, "Life_stage")+time_together)*((1 - Alpha^(1+Early_startup_exit-getattr(startup_1, "Life_stage")))/(1-Alpha))
+        alpha_sumation_2 = Alpha^(1 + Early_startup_exit - getattr(startup_2, "Life_stage")+time_together)*((1 - Alpha^(1+Early_startup_exit-getattr(startup_2, "Life_stage")))/(1-Alpha))   
+        Industry_correlation =  Correlation_matrix.loc[getattr(startup_1, "Industry"), getattr(startup_1, "Industry")] 
+        return alpha_sumation_1*alpha_sumation_2*Industry_correlation*Industry_shock_sd^2 + alpha_sumation_1*alpha_sumation_2
+    
+    #Calculate variance for one startup
+    def expected_variance(self, startup_1):
+        alpha_sumation_1 = ((1 - Alpha^(Early_startup_exit - getattr(startup_1, "Life_stage")))/(1-Alpha))
+        alpha_sumation_2 = ((1 - Alpha^(1 + Early_startup_exit - getattr(startup_1, "Life_stage")))/(1-Alpha))                   
+        if getattr(startup_1, "Life_satge") == 0:
+            noise = Noise_standard_deviation_after_screening_ES
+        else:
+            noise = Noise_standard_deviation_after_screening_ES/(getattr(startup_1, "Life_satge")**(1/2))
+        return alpha_sumation_1**2*noise + alpha_sumation_2**2*Idiosyncratic_shock_sd + alpha_sumation_2**2*Industry_shock_sd + alpha_sumation_2**2*Macro_shock_sd                                                                                         
+
+    #Calculate expected variance for the whole portfolio 
+    def expected_portfolio_variance(self, Portfolio):
+        Total_variance = []
+        for i in Portfolio:
+            for j in Portfolio:
+                if i != j:
+                    Total_variance = i[2]*j[2]*expected_covariance(i[0], j[0]) + Total_variance
+                if i == j:
+                    Total_variance = i[2]**2*expected_variance(i[0]) + Total_variance
+        return Total_variance
+                                    
+    #Gets expected return on a Portfolio
+    def expected_return(self, Portfolio):
+        Return = []
+        for i in Portfolio:
+            Projected_EPI = getattr(i[0], "EPI_with_noise")
+            if j in range(0,(Early_startup_exit-getattr(i[0],"Life_stage"))):                    
+                Projected_EPI = time_progression(Projected_EPI)
+            Return = EPI_to_returns(getattr(i[0], "EPI_with_noise"), i[2]*i[1])+ Return
+        return Return
+    
+    #Expected Sharpe ratio
+    def expected_portfolio_coefficient(self, Portfolio):     
+        return (expected_return(Portfolio) - Risk_free_rate)/expected_portfolio_variance(Portfolio) 
+      
+    #Gets reward after taking a particular action a 
+    def get_reward(self, Portfolio, action, startup):
+        #If less than 0.01 was invested, we assume that VC does not invest into a given startup
+        if action <0.01:
+            return 0
+        #
+        if 0.01<=action<=1:
+            return (expected_portfolio_coefficient(self, (self.Portfolio + startup)) - expected_portfolio_coefficient(self, self.Portfolio))
+        if action>1:
+            return -100
+        
+    #Gets state which is inputed into the RL model
+    def get_state(self, Prospect):
+        return
+    
+    #Gets next state 
+    def get_next_state(self, Portfolio):
+        return
+    
+    def matching_prospects_to_VCs(self):
+        index = 0
+        for i in world.Early_stage_prospects:
+            for j in world.VCs:
+                if getattr(j, "Number_of_available_screenings")/2 > 1+ len(getattr(j, "Screening_prospects")):
+                    j.Screening_prospects.append([i, "Early"])
+                    #i.VC_investments.append([j])
+                    index +=1
+                if index == 10:
+                    break
+            index = 0
+        index = 0 
+        for i in world.Late_stage_prospects:
+            for j in world.VCs:
+                if getattr(j, "Number_of_available_screenings")/2 > len(getattr(j, "Screening_prospects")):
+                    j.Screening_prospects.append([i, "Late"])
+                    #i.VC_investments.append([j])
+                    index +=1
+                if index == 10:
+                    break
+            index = 0
+                    
+    def step(self):
+        world.Early_stage_prospects.sort(key = attrgetter('EPI_with_noise'), reverse = True)
+        world.Late_stage_prospects.sort(key = attrgetter('EPI_with_noise'), reverse = True)
+        self.matching_prospects_to_VCs()
+        
+class Startup(Agent):
+    def __init__(self, unique_id, EPI, Industry, Life_stage, model):
+        self.unique_id = unique_id
+        self.model = model
+        self.Industry = Industry
+        self.EPI = EPI
+        self.Life_stage = Life_stage
+        self.EPI_with_noise = 0
+        self.EPI_after_screening = 0
+        self.VC_investments = []
+    
+    def average_investor_quality(self):
+        total = 0
+        if len(self.VC_investments) != 0:
+            for i in self.VC_investments:
+                total = getattr(i[0], "VC_quality") + total
+            return total/len(self.VC_investments)
+        if len(self.VC_investments) == 0 :
+            return 0
+    
+    #This is a funciton which makes a startup to progress over time                                
+    #The EPI(potential) in time t+1 depends on EPI in time t, advising from VC and random shocks
+    def time_progression(self):
+        self.EPI = Alpha*self.EPI + Beta*self.average_investor_quality() + np.random.normal(Idiosyncratic_shock_mean, Idiosyncratic_shock_sd)\
+        + np.random.normal(Industry_shock_mean, Industry_shock_sd) + np.random.normal(Macro_shock_mean, Macro_shock_sd)
+        self.Life_stage += 1
+                                    
+    def noise_before_screening(self):
+        if self.Life_stage == 0:
+            self.EPI_with_noise = self.EPI + np.random.normal(Noise_mean_before_screening_ES, Noise_standard_deviaiton_before_screening_ES)
+            while self.EPI_with_noise>1 or self.EPI_with_noise<0:
+                self.EPI_with_noise = self.EPI + np.random.normal(Noise_mean_before_screening_ES, Noise_standard_deviaiton_before_screening_ES)
+        else:
+            self.EPI_with_noise = self.EPI + np.random.normal(Noise_mean_before_screening_ES, Noise_standard_deviaiton_before_screening_ES/(self.Life_stage**(1/2)))
+            while self.EPI_with_noise>1 or self.EPI_with_noise<0:
+                self.EPI_with_noise = self.EPI + np.random.normal(Noise_mean_before_screening_ES, Noise_standard_deviaiton_before_screening_ES/(self.Life_stage**(1/2)))
+    
+    def noise_after_screening(self):
+        if self.Life_stage == 0:
+            self.EPI_after_screening = self.EPI + np.random.normal(Noise_mean_after_screening_ES, Noise_standard_deviation_after_screening_ES)
+            while self.EPI_after_screening>1 or self.EPI_after_screening<0:
+                self.EPI_after_screening = self.EPI + np.random.normal(Noise_mean_after_screening_ES, Noise_standard_deviation_after_screening_ES)
+        else:
+            self.EPI_after_screening = self.EPI + np.random.normal(Noise_mean_after_screening_ES, Noise_standard_deviation_after_screening_ES/(self.Life_stage**(1/2)))
+            while self.EPI_after_screening>1 or self.EPI_after_screening<0:
+                self.EPI_after_screening = self.EPI + np.random.normal(Noise_mean_after_screening_ES, Noise_standard_deviation_after_screening_ES)
+    #Function step refers to range of updates that occur every time step 
+    def step(self):
+        #Updating EPI with noise for startups
+        self.noise_before_screening()
+        self.noise_after_screening()
+        #Collecting the prospects for this time step, 
+        #0.450 and 0.570 correspond to levels of EPI that give return greater than 2
+        if self.Life_stage == 0 and self.EPI_with_noise > 0.450:
+            world.Early_stage_prospects.append(self)
+        if self.Life_stage == 8 and self.EPI_with_noise > 0.570:
+            world.Late_stage_prospects.append(self)   
+            
+        #We also make all the startups progress in time    
+        self.time_progression()
+        
+#Activation class, determines in which order agents are activated
+class Activation(BaseScheduler):
+    def step(self):
+        #First, starups are activated
+        for agent in self.agent_buffer(shuffled=True):
+            if agent.unique_id >= world.VC_number:
+                agent.step()
+        #Then, VCs are activated
+        for agent in self.agent_buffer(shuffled=True):
+            if agent.unique_id < world.VC_number:
+                agent.step()
+        #After agents are activated, we updated the step value
+        self.steps += 1
+        self.time += 1
+        
+        
+class World(Model):
+    def __init__(self, VC_number, Startup_number):
+        self.VC_number = VC_number
+        self.Startup_number = Startup_number
+        self.schedule = Activation(self) 
+        self.Early_stage_prospects = []
+        self.Late_stage_prospects = []
+        self.VCs = []
+        
+        ##Creating Agents
+        #Creating Agents - VC
+        for i in range (self.VC_number):
+            a = VC(i,float(theoretical_distribution_VC.generate_random(1)/VC_max_TVPI),int(lognorm.rvs(Number_of_employees_sd, Number_of_employees_loc, Number_of_employees_scale)),self)
+            while a.VC_quality>1:
+                a.VC_quality = float(theoretical_distribution_VC.generate_random(1)/VC_max_TVPI)
+            self.schedule.add(a)
+            self.VCs.append(a)
+            
+        self.VCs.sort(key = attrgetter('VC_quality'), reverse = True)
+        
+        #Creating Agents - Startups
+        for j in range (self.VC_number, self.VC_number + self.Startup_number):
+            b = Startup(j, powerlaw.rvs(EPI_alpha, EPI_loc, EPI_scale),random.choices(List_of_Industries, Probability_Distribution_of_Industries),0, self)
+            self.schedule.add(b)
+        for j in range (self.VC_number,)
+        
+        ##Collecting data
+        self.datacollector = DataCollector(
+          agent_reporters={"EPI": lambda a: getattr(a, "EPI", None)}
+        )
+        
+    def step(self):
+        self.Early_stage_prospects = []
+        self.Late_stage_prospects = []
+        self.schedule.step()
+        self.datacollector.collect(self)
+        for j in range (self.VC_number + self.schedule.steps*self.Startup_number , self.VC_number + self.schedule.steps*self.Startup_number):
+            b = Startup(j, powerlaw.rvs(EPI_alpha, EPI_loc, EPI_scale),random.choices(List_of_Industries, Probability_Distribution_of_Industries),0, self)
+            self.schedule.add(b)
+
+        
+world = World(Number_of_VCs, Number_of_new_startups)
+world.step()
