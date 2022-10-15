@@ -1,6 +1,6 @@
 This project includes two folders - Model and Results.
 
-The folder Model includes the agent based model and the reinforcement learning algorithm.
+The folder Model includes an agent based model and a reinforcement learning algorithm.
 
 The fodler Results includes the results from three simulations after training.
 
